@@ -404,7 +404,12 @@ function Translate() {
             'q': text
         },
         handler: function (resp) {
-            $('tlText').text = String(resp.data).split(',')[0]
+            var result = resp.data[0]
+            var resultText = ''
+            for (i = 0; i < result.length; i++) {
+                resultText += result[i][0]
+            }
+            $('tlText').text = resultText
         }
     })
 }
