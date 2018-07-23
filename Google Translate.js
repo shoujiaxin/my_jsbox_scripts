@@ -14,8 +14,6 @@ var slList = Object.assign({ '检测语言': 'auto' }, tlList)
 var slNameList = Object.keys(slList)
 var tlNameList = Object.keys(tlList)
 
-var slPickerShowed = false
-
 $ui.render({
     props: {
         title: "Google Translate"
@@ -245,12 +243,7 @@ $ui.render({
                     },
                     events: {
                         tapped: function (sender) {
-                            $("pickerView").hidden = false
-                            $delay(0.1, function () {
-                                $("slPickerBlur").animator.moveY(-250).easeInOutQuart.animate(0.3)
-                            })
-                            $("pickerView").userInteractionEnabled = true
-                            slPickerShowed = true
+                            ShowPicker()
                         }
                     }
                 }, {
@@ -268,11 +261,7 @@ $ui.render({
                     },
                     events: {
                         tapped: function (sender) {
-                            $("pickerView").hidden = false
-                            $delay(0.1, function () {
-                                $("tlPickerBlur").animator.moveY(-250).easeInOutQuart.animate(0.3)
-                            })
-                            $("pickerView").userInteractionEnabled = true
+                            ShowPicker()
                         }
                     }
                 }]
@@ -283,79 +272,85 @@ $ui.render({
                 props: {
                     id: "pickerView",
                     bgcolor: $color("clear"),
-                    userInteractionEnabled: false,
                     hidden: true
                 },
                 layout: $layout.fill,
                 events: {
                     tapped: function (sender) {
-                        sender.userInteractionEnabled = false
-                        if (slPickerShowed) {
-                            $("slPickerBlur").animator.moveY(250).easeInOutQuart.animate(0.3)
-                            slPickerShowed = false
-                        }
-                        else {
-                            $("tlPickerBlur").animator.moveY(250).easeInOutQuart.animate(0.3)
-                        }
-                        $delay(0.4, function () {
-                            sender.hidden = true
-                        })
+                        HidePicker()
                         Translate()
                     }
                 },
                 views: [{
                     type: "blur",
                     props: {
-                        id: "slPickerBlur",
-                        radius: 10,
-                        style: 0,
-                        alpha: 0.8
+                        id: "pickerBgBlur",
+                        style: 3,
+                        alpha: 0
                     },
                     layout: function (make, view) {
-                        make.left.inset(0)
-                        make.top.equalTo(view.super.bottom)
-                        make.width.equalTo(view.super.width).dividedBy(2)
-                        make.height.equalTo(200)
+                        make.left.top.right.inset(0)
+                        make.bottom.inset(50)
+                    },
+                    events: {
+                        tapped: function (sender) {
+                            HidePicker()
+                            Translate()
+                        }
                     },
                     views: [{
-                        type: "picker",
+                        type: "blur",
                         props: {
-                            id: "slPicker",
-                            items: [slNameList]
+                            id: "pickerBlur",
+                            style: 0,
+                            radius: 10,
+                            bgcolor: $color("white")
                         },
-                        layout: $layout.fill,
-                        events: {
-                            changed: function (sender) {
-                                $("slButton").title = sender.data
-                            }
-                        }
-                    }]
-                }, {
-                    type: "blur",
-                    props: {
-                        id: "tlPickerBlur",
-                        radius: 10,
-                        style: 0,
-                        alpha: 0.8
-                    },
-                    layout: function (make, view) {
-                        make.right.inset(0)
-                        make.top.equalTo(view.super.bottom)
-                        make.width.equalTo(view.super.width).dividedBy(2)
-                        make.height.equalTo(200)
-                    },
-                    views: [{
-                        type: "picker",
-                        props: {
-                            id: "tlPicker",
-                            items: [tlNameList]
+                        layout: function (make, view) {
+                            make.left.right.inset(10)
+                            make.bottom.inset(-300)
+                            make.height.equalTo(view.super.height).dividedBy(3)
                         },
-                        layout: $layout.fill,
-                        events: {
-                            changed: function (sender) {
-                                $("tlButton").title = sender.data
+                        views: [{
+                            type: "picker",
+                            props: {
+                                id: "slPicker",
+                                items: [slNameList]
+                            },
+                            layout: function (make, view) {
+                                make.left.top.bottom.inset(0)
+                                make.width.equalTo(view.super.width).dividedBy(2.5)
+                            },
+                            events: {
+                                changed: function (sender) {
+                                    $("slButton").title = sender.data
+                                }
                             }
-                        }
+                        }, {
+                            type: "picker",
+                            props: {
+                                id: "tlPicker",
+                                items: [tlNameList]
+                            },
+                            layout: function (make, view) {
+                                make.top.right.bottom.inset(0)
+                                make.width.equalTo(view.super.width).dividedBy(2.5)
+                            },
+                            events: {
+                                changed: function (sender) {
+                                    $("tlButton").title = sender.data
+                                }
+                            }
+                        }, {
+                            type: "image",
+                            props: {
+                                icon: $icon("163", $color("black"))
+                            },
+                            layout: function (make, view) {
+                                make.size.equalTo($size(30, 30))
+                                make.center.equalTo(view.super.center)
+                            }
+                        }]
                     }]
                 }]
             }]
@@ -375,7 +370,53 @@ function HideKeyboard() {
     $("slText").blur()
 }
 
+function HidePicker() {
+    $ui.animate({
+        duration: 0.2,
+        animation: function () {
+            $("pickerBgBlur").alpha = 0
+        },
+        completion: function () {
+            $("pickerView").hidden = true
+        }
+    })
+
+    $("pickerBlur").updateLayout(function (make, view) {
+        make.left.right.inset(10)
+        make.bottom.inset(-300)
+        make.height.equalTo(view.super.height).dividedBy(3)
+    })
+}
+
+function ShowPicker() {
+    $("pickerView").hidden = false
+    $ui.animate({
+        duration: 0.25,
+        animation: function () {
+            $("pickerBgBlur").alpha = 0.8
+        }
+    })
+
+    $("pickerBlur").updateLayout(function (make, view) {
+        make.left.right.bottom.inset(10)
+        make.height.equalTo(view.super.height).dividedBy(3)
+    })
+    $ui.animate({
+        duration: 0.5,
+        damping: 0.6,
+        velocity: 0.4,
+        animation: function () {
+            $("pickerBlur").relayout()
+        }
+    })
+}
+
 function Translate() {
+    if ($("slButton").title == $("tlButton").title) {
+        $("tlText").text = $("slText").text
+        return
+    }
+
     text = $("slText").text
     if (text == "") {
         $("tlText").text = ""
