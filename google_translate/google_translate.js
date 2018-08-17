@@ -1,6 +1,6 @@
-const currVersion = 1.0  // 版本号
-CheckUpdate()
 $app.validEnv = $env.app
+const currVersion = 1.0  // 版本号
+checkUpdate()
 var tlList = {
     "阿拉伯语": "ar",
     "德语": "de",
@@ -29,7 +29,7 @@ $ui.render({
         layout: $layout.fill,
         events: {
             tapped: function (sender) {
-                HideKeyboard()
+                hideKeyboard()
             }
         },
         views: [
@@ -43,11 +43,11 @@ $ui.render({
                 layout: function (make, view) {
                     make.left.top.right.inset(10)
                     make.height.equalTo(view.super.height).offset(-40).dividedBy(2)
-                    AddShadow(view)
+                    addShadow(view)
                 },
                 events: {
                     tapped: function (sender) {
-                        HideKeyboard()
+                        hideKeyboard()
                     }
                 },
                 views: [{
@@ -64,10 +64,10 @@ $ui.render({
                     },
                     events: {
                         didEndEditing: function (sender) {
-                            Translate()
+                            translate()
                         },
                         willBeginDragging: function (sender) {
-                            HideKeyboard()
+                            hideKeyboard()
                         }
                     }
                 }, {
@@ -83,11 +83,13 @@ $ui.render({
                     },
                     events: {
                         tapped: function (sender) {
-                            if ($("slButton").title == "检测语言" && $("slText").text != "") {
-                                $ui.error("请指定源语言")
-                                return
+                            if ($("slText").text != "") {
+                                if ($("slButton").title == "检测语言") {
+                                    $ui.error("请指定源语言")
+                                } else {
+                                    speekText($("slText").text, slList[$("slButton").title])
+                                }
                             }
-                            SpeekText($("slText").text, slList[$("slButton").title])
                         }
                     }
                 }, {
@@ -122,7 +124,7 @@ $ui.render({
                     events: {
                         tapped: function (sender) {
                             $("slText").text = $clipboard.text
-                            Translate()
+                            translate()
                         }
                     }
                 }]
@@ -138,7 +140,7 @@ $ui.render({
                     make.top.equalTo($("slView").bottom).offset(10)
                     make.left.right.inset(10)
                     make.height.equalTo(view.super.height).offset(-40).dividedBy(2)
-                    AddShadow(view)
+                    addShadow(view)
                 },
                 views: [{
                     type: "text",
@@ -153,10 +155,10 @@ $ui.render({
                     },
                     events: {
                         tapped: function (sender) {
-                            HideKeyboard()
+                            hideKeyboard()
                         },
                         willBeginDragging: function (sender) {
-                            HideKeyboard()
+                            hideKeyboard()
                         }
                     }
                 }, {
@@ -173,14 +175,14 @@ $ui.render({
                     events: {
                         tapped: function (sender) {
                             if ($("tlText").text != "") {
-                                SpeekText($("tlText").text, slList[$("tlButton").title])
+                                speekText($("tlText").text, slList[$("tlButton").title])
                             }
                         }
                     }
                 }, {
                     type: "button",
                     props: {
-                        id: "CopyButton",
+                        id: "copyButton",
                         icon: $icon("106", $color("gray"), $size(20, 20)),
                         bgcolor: $color("clear")
                     },
@@ -233,7 +235,7 @@ $ui.render({
                             var text = $("slText").text
                             $("slText").text = $("tlText").text
                             $("tlText").text = text
-                            Translate()
+                            translate()
                         }
                     }
                 }, {
@@ -251,7 +253,7 @@ $ui.render({
                     },
                     events: {
                         tapped: function (sender) {
-                            ShowPicker()
+                            showPicker()
                         }
                     }
                 }, {
@@ -269,7 +271,7 @@ $ui.render({
                     },
                     events: {
                         tapped: function (sender) {
-                            ShowPicker()
+                            showPicker()
                         }
                     }
                 }]
@@ -285,8 +287,8 @@ $ui.render({
                 layout: $layout.fill,
                 events: {
                     tapped: function (sender) {
-                        HidePicker()
-                        Translate()
+                        hidePicker()
+                        translate()
                     }
                 },
                 views: [{
@@ -302,8 +304,8 @@ $ui.render({
                     },
                     events: {
                         tapped: function (sender) {
-                            HidePicker()
-                            Translate()
+                            hidePicker()
+                            translate()
                         }
                     },
                     views: [{
@@ -365,7 +367,7 @@ $ui.render({
     }]
 })
 
-function AddShadow(view) {
+function addShadow(view) {
     var layer = view.runtimeValue().invoke("layer")
     layer.invoke("setCornerRadius", 10)
     layer.invoke("setShadowOffset", $size(4, 4))
@@ -374,11 +376,11 @@ function AddShadow(view) {
     layer.invoke("setShadowRadius", 6)
 }
 
-function HideKeyboard() {
+function hideKeyboard() {
     $("slText").blur()
 }
 
-function HidePicker() {
+function hidePicker() {
     $ui.animate({
         duration: 0.2,
         animation: function () {
@@ -396,7 +398,7 @@ function HidePicker() {
     })
 }
 
-function ShowPicker() {
+function showPicker() {
     $("pickerView").hidden = false
     $ui.animate({
         duration: 0.25,
@@ -419,7 +421,7 @@ function ShowPicker() {
     })
 }
 
-function Translate() {
+function translate() {
     if ($("slButton").title == $("tlButton").title) {
         $("tlText").text = $("slText").text
         return
@@ -453,8 +455,8 @@ function Translate() {
             "q": text
         },
         handler: function (resp) {
-            var result = resp.data[0]
-            var resultText = ""
+            let result = resp.data[0]
+            let resultText = ""
             for (i = 0; i < result.length; i++) {
                 resultText += result[i][0]
             }
@@ -463,8 +465,8 @@ function Translate() {
     })
 }
 
-function SpeekText(text, language) {
-    HideKeyboard()
+function speekText(text, language) {
+    hideKeyboard()
     $text.speech({
         text: text,
         rate: 0.5,
@@ -472,7 +474,7 @@ function SpeekText(text, language) {
     })
 }
 
-function CheckUpdate() {
+function checkUpdate() {
     $http.get({
         url: "https://raw.githubusercontent.com/shoujiaxin/my_jsbox_scripts/master/google_translate/info.json",
         handler: function (resp) {
@@ -480,18 +482,18 @@ function CheckUpdate() {
             let msg = resp.data.msg
             if (currVersion < newVersion) {
                 $ui.alert({
-                    title: "检测到新版本！${newVersion}",
-                    message: "是否更新？\n更新完成后请重启脚本。\n${msg}",
+                    title: "检测到新版本！",
+                    message: `v${newVersion.toFixed(1)} ${msg}`,
                     actions: [
                         {
-                            title: "是",
+                            title: "更新",
                             handler: function () {
-                                let updateUrl = "jsbox://install?url=https://raw.githubusercontent.com/shoujiaxin/my_jsbox_scripts/master/google_translate/Google%20Translate.js"
+                                let updateUrl = "jsbox://install?url=https://raw.githubusercontent.com/shoujiaxin/my_jsbox_scripts/master/google_translate/google_translate.js&name=Google Translate"
                                 $app.openURL(encodeURI(updateUrl))
                                 $app.close()
                             }
                         }, {
-                            title: "否"
+                            title: "取消"
                         }
                     ]
                 })
