@@ -1,16 +1,18 @@
+const currVersion = 1.0  // 版本号
+CheckUpdate()
+$app.validEnv = $env.app
 var tlList = {
-    '阿拉伯语': 'ar',
-    '德语': 'de',
-    '俄语': 'ru',
-    '法语': 'fr',
-    '韩语': 'ko',
-    '日语': 'ja',
-    '意大利语': 'it',
-    '英语': 'en',
-    '中文（简体）': 'zh-CN'
+    "阿拉伯语": "ar",
+    "德语": "de",
+    "俄语": "ru",
+    "法语": "fr",
+    "韩语": "ko",
+    "日语": "ja",
+    "意大利语": "it",
+    "英语": "en",
+    "中文（简体）": "zh-CN"
 }
-var slList = Object.assign({ '检测语言': 'auto' }, tlList)
-
+var slList = Object.assign({ "检测语言": "auto" }, tlList)
 var slNameList = Object.keys(slList)
 var tlNameList = Object.keys(tlList)
 
@@ -81,6 +83,10 @@ $ui.render({
                     },
                     events: {
                         tapped: function (sender) {
+                            if ($("slButton").title == "检测语言" && $("slText").text != "") {
+                                $ui.error("请指定源语言")
+                                return
+                            }
                             SpeekText($("slText").text, slList[$("slButton").title])
                         }
                     }
@@ -166,7 +172,9 @@ $ui.render({
                     },
                     events: {
                         tapped: function (sender) {
-                            SpeekText($("tlText").text, slList[$("tlButton").title])
+                            if ($("tlText").text != "") {
+                                SpeekText($("tlText").text, slList[$("tlButton").title])
+                            }
                         }
                     }
                 }, {
@@ -428,38 +436,66 @@ function Translate() {
 
 
     $http.request({
-        method: 'POST',
-        url: 'https://translate.google.cn/translate_a/single',
+        method: "POST",
+        url: "https://translate.google.cn/translate_a/single",
         header: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'User-Agent':
-                'Mozilla/5.0 AppleWebKit/537.36 Chrome/63.0.3239.84 Safari/537.36'
+            "Content-Type": "application/x-www-form-urlencoded",
+            "User-Agent":
+                "Mozilla/5.0 AppleWebKit/537.36 Chrome/63.0.3239.84 Safari/537.36"
         },
         body: {
-            'client': 'gtx',
-            'sl': sl,
-            'tl': tl,
-            'dt': 't',
-            'ie': 'UTF-8',
-            'oe': 'UTF-8',
-            'q': text
+            "client": "gtx",
+            "sl": sl,
+            "tl": tl,
+            "dt": "t",
+            "ie": "UTF-8",
+            "oe": "UTF-8",
+            "q": text
         },
         handler: function (resp) {
             var result = resp.data[0]
-            var resultText = ''
+            var resultText = ""
             for (i = 0; i < result.length; i++) {
                 resultText += result[i][0]
             }
-            $('tlText').text = resultText
+            $("tlText").text = resultText
         }
     })
 }
 
 function SpeekText(text, language) {
-    $("slText").blur()
+    HideKeyboard()
     $text.speech({
         text: text,
         rate: 0.5,
         language: language
+    })
+}
+
+function CheckUpdate() {
+    $http.get({
+        url: "https://raw.githubusercontent.com/shoujiaxin/my_jsbox_scripts/master/google_translate/info.json",
+        handler: function (resp) {
+            let newVersion = resp.data.version
+            let msg = resp.data.msg
+            if (currVersion < newVersion) {
+                $ui.alert({
+                    title: "检测到新版本！${newVersion}",
+                    message: "是否更新？\n更新完成后请重启脚本。\n${msg}",
+                    actions: [
+                        {
+                            title: "是",
+                            handler: function () {
+                                let updateUrl = "jsbox://install?url=https://raw.githubusercontent.com/shoujiaxin/my_jsbox_scripts/master/google_translate/Google%20Translate.js"
+                                $app.openURL(encodeURI(updateUrl))
+                                $app.close()
+                            }
+                        }, {
+                            title: "否"
+                        }
+                    ]
+                })
+            }
+        }
     })
 }
