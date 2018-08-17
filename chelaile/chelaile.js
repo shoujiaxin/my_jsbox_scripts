@@ -1,5 +1,5 @@
 $app.validEnv = $env.app
-const currVersion = 1.0  // 版本号
+const currVersion = 1.1  // 版本号
 checkUpdate()
 getLocation()
 
@@ -28,17 +28,26 @@ function getCity(lat, lng) {
 function loadPage(lat, lng, cityId, cityName) {
     $ui.render({
         props: {
-            title: "车来了"
+            title: "车来了",
+            bgcolor: $color("#E0E0E0")
         },
         views: [{
             type: "web",
             props: {
                 id: "webView",
                 url: `http://web.chelaile.net.cn/ch5/index.html?showFav=1&switchCity=0&utm_source=webapp_meizu_map&showTopLogo=0&gpstype=wgs&src=webapp_meizu_map&utm_medium=menu&showHeader=1&hideFooter=1&cityName=${cityName}&cityId=${cityId}&supportSubway=1&cityVersion=0&lat=${lat}&lng=${lng}#!/linearound`,
-                scrollEnabled: false,
+                transparent: true,
                 showsProgress: false
             },
-            layout: $layout.fill
+            layout: function (make, view) {
+                if ($device.info.screen.width <= 736) {
+                    make.left.top.right.bottom.inset(0)
+                } else {
+                    make.center.equalTo(view.center)
+                    make.height.equalTo(view.super.height)
+                    make.width.equalTo(736)
+                }
+            }
         }]
     })
 }
