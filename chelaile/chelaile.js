@@ -36,6 +36,7 @@ function loadPage(lat, lng, cityId, cityName) {
             props: {
                 id: "webView",
                 url: `http://web.chelaile.net.cn/ch5/index.html?showFav=1&switchCity=0&utm_source=webapp_meizu_map&showTopLogo=0&gpstype=wgs&src=webapp_meizu_map&utm_medium=menu&showHeader=1&hideFooter=1&cityName=${cityName}&cityId=${cityId}&supportSubway=1&cityVersion=0&lat=${lat}&lng=${lng}#!/linearound`,
+                bounces: false,
                 transparent: true,
                 showsProgress: false
             },
@@ -44,7 +45,7 @@ function loadPage(lat, lng, cityId, cityName) {
                     make.left.top.right.bottom.inset(0)
                 } else {
                     make.center.equalTo(view.center)
-                    make.height.equalTo(view.super.height)
+                    make.height.equalTo(view.super)
                     make.width.equalTo(736)
                 }
             }
