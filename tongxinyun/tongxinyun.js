@@ -1,9 +1,11 @@
 $app.validEnv = $env.app
 $app.rotateDisabled = true
-const currVersion = 0.1  // 版本号
+const currVersion = 0.15  // 版本号
 checkUpdate()
+var cookie
 var myUserId
 var myPhotoUrl
+var tabIndex = 0
 
 $ui.render({
     props: {
@@ -64,6 +66,7 @@ $ui.render({
     }, {
         type: "button",
         props: {
+            id: "loginButton",
             title: "登    录",
             bgcolor: $color("tint"),
             font: $font(20)
@@ -78,15 +81,29 @@ $ui.render({
             tapped: function (sender) {
                 if ($("id").text == "" || $("passwd").text == "") {
                     $ui.error("请正确输入账号和密码！")
-                } else {
+                } else if (sender.title != "") {
                     login()
                 }
             }
-        }
+        },
+        views: [{
+            type: "spinner",
+            props: {
+                id: "loginSpinner",
+                loading: false,
+                color: $color("white"),
+                style: 1
+            },
+            layout: function (make, view) {
+                make.center.equalTo(view.super)
+            }
+        }]
     }]
 })
 
 function login() {
+    $("loginButton").title = ""
+    $("loginSpinner").loading = true
     $http.request({
         method: "POST",
         url: "http://yun.tongji.edu.cn/space/c/rest/user/login",
@@ -103,17 +120,19 @@ function login() {
             let data = resp.data
             if (data.success == false) {
                 $ui.error("用户名或密码错误！")
+                $("loginSpinner").loading = false
+                $("loginButton").title = "登    录"
                 return
             }
-            let cookie = resp.response.headers["Set-Cookie"]
+            cookie = resp.response.headers["Set-Cookie"]
             myUserId = data.user.id
             myPhotoUrl = data.user.photoUrl
-            getContent(cookie)
+            getContent()
         }
     })
 }
 
-function getContent(cookie) {
+function getContent() {
     $http.request({
         method: "GET",
         url: "http://yun.tongji.edu.cn/microblog",
@@ -123,13 +142,14 @@ function getContent(cookie) {
             "Cookie": cookie
         },
         handler: function (resp) {
-            let data = resp.data;
+            let data = resp.data
             console.log(data)
+            showHomePage()
         }
-    });
+    })
 }
 
-function showMicroblog() {
+function showHomePage() {
     $ui.render({
         props: {
             title: "同心云",
@@ -148,7 +168,7 @@ function showMicroblog() {
             views: [{
                 type: "button",
                 props: {
-                    id: "homeTab",
+                    id: "microblogTab",
                     icon: $icon("053", $color("white"), $size(25, 25)),
                     bgcolor: $color("clear")
                 },
@@ -158,14 +178,20 @@ function showMicroblog() {
                 },
                 events: {
                     tapped: function (sender) {
-
+                        if (tabIndex == 1) {
+                            $("microblogTab").icon = $icon("053", $color("white"), $size(25, 25))
+                            $("profileTab").icon = $icon("109", $color("lightGray"), $size(25, 25))
+                            $("profileView").hidden = true
+                            $("microblogView").hidden = false
+                            tabIndex = 0
+                        }
                     }
                 }
             }, {
                 type: "button",
                 props: {
-                    id: "infoTab",
-                    icon: $icon("109", $color("white"), $size(25, 25)),
+                    id: "profileTab",
+                    icon: $icon("109", $color("lightGray"), $size(25, 25)),
                     bgcolor: $color("clear")
                 },
                 layout: function (make, view) {
@@ -174,46 +200,78 @@ function showMicroblog() {
                 },
                 events: {
                     tapped: function (sender) {
-
+                        if (tabIndex == 0) {
+                            $("microblogTab").icon = $icon("053", $color("lightGray"), $size(25, 25))
+                            $("profileTab").icon = $icon("109", $color("white"), $size(25, 25))
+                            $("microblogView").hidden = true
+                            $("profileView").hidden = false
+                            tabIndex = 1
+                        }
                     }
                 }
             }]
         }, {
-            type: "matrix",
+            type: "view",
             props: {
-                columns: 1,
-                itemHeight: 180,
-                spacing: 5,
+                id: "microblogView",
                 bgcolor: $color("clear"),
-                template: {
-                    props: {
-                    },
-                    views: [{
-                        type: "view",
-                        props: {
-                            bgcolor: $color("white")
-                        },
-                        layout: function (make, view) {
-                            make.left.top.right.bottom.inset(0)
-                            addShadow(view)
-                        },
-                        views: [{
-                            type: "button",
-                            props: {
-                                id: "bu"
-                            },
-                            layout: function (make, view) {
-                                make.left.top.inset(5)
-                                make.size.equalTo($size(40, 40))
-                            }
-                        }]
-                    }]
-                }
+                hidden: false
             },
             layout: function (make, view) {
                 make.left.top.right.inset(0)
                 make.bottom.equalTo($("tabView").top)
-            }
+            },
+            views: [{
+                type: "matrix",
+                props: {
+                    columns: 1,
+                    itemHeight: 180,
+                    spacing: 5,
+                    bgcolor: $color("clear"),
+                    template: {
+                        props: {
+                        },
+                        views: [{
+                            type: "view",
+                            props: {
+                                bgcolor: $color("white")
+                            },
+                            layout: function (make, view) {
+                                make.left.top.right.bottom.inset(0)
+                                addShadow(view)
+                            },
+                            views: []
+                        }]
+                    }
+                },
+                layout: function (make, view) {
+                    make.left.top.right.inset(0)
+                    make.bottom.equalTo($("tabView").top)
+                }
+            }]
+        }, {
+            type: "view",
+            props: {
+                id: "profileView",
+                bgcolor: $color("clear"),
+                hidden: true
+            },
+            layout: function (make, view) {
+                make.left.top.right.inset(0)
+                make.bottom.equalTo($("tabView").top)
+            },
+            views: [{
+                type: "image",
+                props: {
+                    src: `http://yun.tongji.edu.cn${myPhotoUrl}`
+                },
+                layout: function (make, view) {
+                    make.centerX.equalTo(view.super)
+                    make.top.inset(50)
+                    make.size.equalTo($size(100, 100))
+                    addShadow(view)
+                }
+            }]
         }]
     })
 }
