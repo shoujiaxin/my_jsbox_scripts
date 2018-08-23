@@ -1,6 +1,6 @@
 $app.validEnv = $env.app
 $app.rotateDisabled = true
-const currVersion = 0.15  // 版本号
+const currVersion = 0.2  // 版本号
 checkUpdate()
 var cookie
 var myUserId
@@ -79,6 +79,7 @@ $ui.render({
         },
         events: {
             tapped: function (sender) {
+                hideKeyboard()
                 if ($("id").text == "" || $("passwd").text == "") {
                     $ui.error("请正确输入账号和密码！")
                 } else if (sender.title != "") {
@@ -132,24 +133,45 @@ function login() {
     })
 }
 
-function getContent() {
-    $http.request({
+async function getContent() {
+    let microblogResp = await $http.request({
         method: "GET",
         url: "http://yun.tongji.edu.cn/microblog",
         header: {
             "Content-Type": "application/x-www-form-urlencoded",
             "User-Agent": "Mozilla/5.0 AppleWebKit/537.36 Chrome/68.0.3440.106 Safari/537.36",
             "Cookie": cookie
-        },
-        handler: function (resp) {
-            let data = resp.data
-            console.log(data)
-            showHomePage()
         }
     })
+
+    let profileResp = await $http.request({
+        method: "GET",
+        url: `http://yun.tongji.edu.cn/microblog/${myUserId}/profile`,
+        header: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "User-Agent": "Mozilla/5.0 AppleWebKit/537.36 Chrome/68.0.3440.106 Safari/537.36",
+            "Cookie": cookie
+        }
+    })
+    let result = /currentUserName"(.*)"/.exec(profileResp.data)[1].split("\"")
+    let name = result[result.length - 1]
+    result = /粉丝:(.*)<\/a>/.exec(profileResp.data)[1].split(">")
+    let follower = result[result.length - 1]
+    result = /关注:(.*)<\/a>/.exec(profileResp.data)[1].split(">")
+    let following = result[result.length - 1]
+    result = /微博:(.*)<\/a>/.exec(profileResp.data)[1].split(">")
+    let weiboCnt = result[result.length - 1]
+    let status = `粉丝：${follower}\t关注：${following}\t微博：${weiboCnt}`
+    result = /部门：\n(.*)<\/span>/.exec(profileResp.data)[1].split("&gt;")
+    let department = `${result[result.length - 3]} > ${result[result.length - 2]} > ${result[result.length - 1]}`
+    result = /mailto:(.*)'/.exec(profileResp.data)[1].split(":")
+    let email = result[result.length - 1]
+    let profileData = [name, status, department, email]
+
+    await showHomePage(microblogResp.data, profileData)
 }
 
-function showHomePage() {
+function showHomePage(microblogData, profileData) {
     $ui.render({
         props: {
             title: "同心云",
@@ -261,16 +283,68 @@ function showHomePage() {
                 make.bottom.equalTo($("tabView").top)
             },
             views: [{
-                type: "image",
+                type: "view",
                 props: {
-                    src: `http://yun.tongji.edu.cn${myPhotoUrl}`
+                    bgcolor: $color("white")
                 },
                 layout: function (make, view) {
-                    make.centerX.equalTo(view.super)
-                    make.top.inset(50)
-                    make.size.equalTo($size(100, 100))
+                    make.left.top.right.inset(20)
+                    make.height.equalTo(150)
                     addShadow(view)
-                }
+                },
+                views: [{
+                    type: "image",
+                    props: {
+                        src: `http://yun.tongji.edu.cn${myPhotoUrl}`
+                    },
+                    layout: function (make, view) {
+                        make.left.top.bottom.inset(25)
+                        make.width.equalTo(100)
+                    }
+                }, {
+                    type: "list",
+                    props: {
+                        data: [profileData[0], profileData[1]],
+                        separatorHidden: true,
+                        selectable: false,
+                        bgcolor: $color("clear"),
+                        scrollEnabled: false,
+                    },
+                    layout: function (make, view) {
+                        make.left.equalTo($("image").right).offset(50)
+                        make.top.right.bottom.inset(25)
+                    }
+                }]
+            }, {
+                type: "view",
+                props: {
+                    bgcolor: $color("white")
+                },
+                layout: function (make, view) {
+                    make.left.right.inset(0)
+                    make.top.inset(190)
+                    make.height.equalTo(220)
+                },
+                views: [{
+                    type: "list",
+                    props: {
+                        data: [{
+                            title: "部门",
+                            rows: [profileData[2]]
+                        }, {
+                            title: "邮箱",
+                            rows: [profileData[3]]
+                        }],
+                        separatorHidden: true,
+                        selectable: false,
+                        bgcolor: $color("clear"),
+                        scrollEnabled: false,
+                    },
+                    layout: function (make, view) {
+                        make.left.right.bottom.inset(20)
+                        make.top.inset(0)
+                    }
+                }]
             }]
         }]
     })
