@@ -1,106 +1,171 @@
 $app.validEnv = $env.app
 $app.rotateDisabled = true
-const currVersion = "0.2.1"  // 版本号
+const currVersion = "0.2.2"  // 版本号
 checkUpdate()
 var cookie
 var myUserId
 var myPhotoUrl
 var tabIndex = 0
 
-$ui.render({
-    props: {
-        title: "同心云",
-        bgcolor: $color("#E0E0E0")
-    },
-    events: {
-        tapped: function (sender) {
-            hideKeyboard()
-        }
-    },
-    views: [{
-        type: "image",
-        props: {
-            id: "bgImage",
-            src: "http://yun.tongji.edu.cn/public/home/images/bg.png?201611021501"
-        },
-        layout: function (make, view) {
-            make.left.top.right.inset(0)
-            make.height.equalTo(view.super.width).dividedBy(2)
-        }
-    }, {
-        type: "input",
-        props: {
-            id: "id",
-            placeholder: "请输入账号"
-        },
-        layout: function (make, view) {
-            make.centerX.equalTo(view.super)
-            make.top.equalTo($("bgImage").bottom).offset(30)
-            make.width.equalTo(view.super).dividedBy(1.5)
-            make.height.equalTo(50)
-        },
-        events: {
-            returned: function (sender) {
-                hideKeyboard()
+if ($device.info.screen.orientation != 1 && $device.info.screen.orientation != 2 && ($device.isIpad || $device.isIpadPro)) {
+    $ui.alert({
+        title: "此应用暂不支持横屏",
+        actions: [{
+            title: "退出",
+            handler: function () {
+                $app.close()
             }
-        }
-    }, {
-        type: "input",
+        }]
+    })
+} else {
+    let accountCache = $cache.get("txyAccount")
+    if (accountCache == undefined) { showLoginPage("", "", false) }
+    else {
+        showLoginPage(accountCache.id, accountCache.passwd, true)
+    }
+}
+
+function showLoginPage(id, passwd, saveAccount) {
+    $ui.render({
         props: {
-            id: "passwd",
-            placeholder: "请输入密码",
-            secure: true
-        },
-        layout: function (make, view) {
-            make.centerX.equalTo(view.super)
-            make.top.equalTo($("id").bottom).offset(20)
-            make.width.equalTo(view.super).dividedBy(1.5)
-            make.height.equalTo(50)
-        },
-        events: {
-            returned: function (sender) {
-                hideKeyboard()
-                login()
-            }
-        }
-    }, {
-        type: "button",
-        props: {
-            id: "loginButton",
-            title: "登    录",
-            bgcolor: $color("tint"),
-            font: $font(20)
-        },
-        layout: function (make, view) {
-            make.centerX.equalTo(view.super)
-            make.top.equalTo($("passwd").bottom).offset(60)
-            make.width.equalTo(view.super).dividedBy(1.5)
-            make.height.equalTo(50)
+            title: "同心云",
+            bgcolor: $color("#E0E0E0")
         },
         events: {
             tapped: function (sender) {
                 hideKeyboard()
-                if ($("id").text == "" || $("passwd").text == "") {
-                    $ui.error("请正确输入账号和密码！")
-                } else if (sender.title != "") {
-                    login()
-                }
             }
         },
         views: [{
-            type: "spinner",
+            type: "image",
             props: {
-                id: "loginSpinner",
-                loading: false,
-                color: $color("white"),
-                style: 1
+                id: "bgImage",
+                src: "http://yun.tongji.edu.cn/public/home/images/bg.png?201611021501"
             },
             layout: function (make, view) {
-                make.center.equalTo(view.super)
+                make.left.top.right.inset(0)
+                make.height.equalTo(view.super.width).dividedBy(2)
             }
+        }, {
+            type: "input",
+            props: {
+                id: "id",
+                placeholder: "请输入账号",
+                text: id,
+            },
+            layout: function (make, view) {
+                make.centerX.equalTo(view.super)
+                make.top.equalTo($("bgImage").bottom).offset(30)
+                make.width.equalTo(view.super).dividedBy(1.5)
+                make.height.equalTo(50)
+            },
+            events: {
+                returned: function (sender) {
+                    hideKeyboard()
+                }
+            }
+        }, {
+            type: "input",
+            props: {
+                id: "passwd",
+                placeholder: "请输入密码",
+                secure: true,
+                text: passwd
+            },
+            layout: function (make, view) {
+                make.centerX.equalTo(view.super)
+                make.top.equalTo($("id").bottom).offset(20)
+                make.width.equalTo(view.super).dividedBy(1.5)
+                make.height.equalTo(50)
+            },
+            events: {
+                returned: function (sender) {
+                    hideKeyboard()
+                    login()
+                }
+            }
+        }, {
+            type: "button",
+            props: {
+                id: "loginButton",
+                title: "登    录",
+                bgcolor: $color("tint"),
+                font: $font(20)
+            },
+            layout: function (make, view) {
+                make.centerX.equalTo(view.super)
+                make.top.equalTo($("passwd").bottom).offset(60)
+                make.width.equalTo(view.super).dividedBy(1.5)
+                make.height.equalTo(50)
+            },
+            events: {
+                tapped: function (sender) {
+                    hideKeyboard()
+                    if ($("id").text == "" || $("passwd").text == "") {
+                        $ui.error("请正确输入账号和密码！")
+                    } else if (sender.title != "") {
+                        login()
+                    }
+                }
+            },
+            views: [{
+                type: "spinner",
+                props: {
+                    id: "loginSpinner",
+                    loading: false,
+                    color: $color("white"),
+                    style: 1
+                },
+                layout: function (make, view) {
+                    make.center.equalTo(view.super)
+                }
+            }]
+        }, {
+            type: "view",
+            props: {
+                bgcolor: $color("gray")
+            },
+            layout: function (make, view) {
+                make.left.right.bottom.inset(0)
+                make.height.equalTo(50)
+            },
+            views: [{
+                type: "label",
+                props: {
+                    text: "记住密码",
+                    textColor: $color("white")
+                },
+                layout: function (make, view) {
+                    make.left.inset(25)
+                    make.centerY.equalTo(view.super)
+                }
+            }, {
+                type: "switch",
+                props: {
+                    id: "saveSwitch",
+                    on: saveAccount,
+                },
+                layout: function (make, view) {
+                    make.right.inset(25)
+                    make.centerY.equalTo(view.super)
+                },
+                events: {
+                    changed: function (sender) {
+                        $cache.clearAsync({
+                            handler: function () {
+                                console.log("Cache Cleared!")
+                            }
+                        })
+                        if (!sender.on) {
+                            $("id").text = ""
+                            $("passwd").text = ""
+                        }
+                    }
+                }
+            }]
         }]
-    }]
-})
+    })
+}
 
 function login() {
     $("loginButton").title = ""
@@ -124,6 +189,18 @@ function login() {
                 $("loginSpinner").loading = false
                 $("loginButton").title = "登    录"
                 return
+            }
+            if ($("saveSwitch").on) {
+                $cache.setAsync({
+                    key: "txyAccount",
+                    value: {
+                        "id": $("id").text,
+                        "passwd": $("passwd").text
+                    },
+                    handler: function () {
+                        console.log("Account Cached!")
+                    }
+                })
             }
             cookie = resp.response.headers["Set-Cookie"]
             myUserId = data.user.id
