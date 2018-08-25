@@ -1,13 +1,13 @@
 $app.validEnv = $env.app
 $app.rotateDisabled = true
-const currVersion = "0.2.2"  // 版本号
+const currVersion = "0.2.3"  // 版本号
 checkUpdate()
 var cookie
 var myUserId
 var myPhotoUrl
 var tabIndex = 0
 
-if ($device.info.screen.orientation != 1 && $device.info.screen.orientation != 2 && ($device.isIpad || $device.isIpadPro)) {
+if ($device.info.screen.width > $device.info.screen.height && ($device.isIpad || $device.isIpadPro)) {
     $ui.alert({
         title: "此应用暂不支持横屏",
         actions: [{
@@ -337,7 +337,7 @@ function showHomePage(microblogData, profileData) {
                             },
                             layout: function (make, view) {
                                 make.left.top.right.bottom.inset(0)
-                                addShadow(view)
+                                addShadow(view, 6, 6)
                             },
                             views: []
                         }]
@@ -367,16 +367,17 @@ function showHomePage(microblogData, profileData) {
                 layout: function (make, view) {
                     make.left.top.right.inset(10)
                     make.height.equalTo(150)
-                    addShadow(view)
+                    addShadow(view, 0, 6)
                 },
                 views: [{
                     type: "image",
                     props: {
-                        src: `http://yun.tongji.edu.cn${myPhotoUrl}`
+                        src: `http://yun.tongji.edu.cn${myPhotoUrl}`,
+                        circular: true
                     },
                     layout: function (make, view) {
                         make.size.equalTo($size(80, 80))
-                        make.left.inset(10)
+                        make.left.inset(20)
                         make.centerY.equalTo(view.super)
                     },
                     events: {
@@ -422,7 +423,7 @@ function showProfile(profileData) {
             layout: function (make, view) {
                 make.left.top.right.inset(10)
                 make.height.equalTo(220)
-                addShadow(view)
+                addShadow(view, 0, 6)
             },
             views: [{
                 type: "list",
@@ -448,13 +449,13 @@ function showProfile(profileData) {
     })
 }
 
-function addShadow(view) {
+function addShadow(view, cornerRadius, setShadowRadius) {
     var layer = view.runtimeValue().invoke("layer")
-    layer.invoke("setCornerRadius", 10)
+    layer.invoke("setCornerRadius", cornerRadius)
     layer.invoke("setShadowOffset", $size(2, 2))
     layer.invoke("setShadowColor", $color("lightGray").runtimeValue().invoke("CGColor"))
     layer.invoke("setShadowOpacity", 0.2)
-    layer.invoke("setShadowRadius", 4)
+    layer.invoke("setShadowRadius", setShadowRadius)
 }
 
 function hideKeyboard() {

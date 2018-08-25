@@ -1,5 +1,5 @@
 {
     "name": "tongxinyun.js",
-    "version": "0.2.2",
-    "msg": "更新日志：\n1. 禁用横屏显示\n2. 增加记住密码功能"
+    "version": "0.2.3",
+    "msg": "更新日志：\n1. 修复 UI 问题"
 }

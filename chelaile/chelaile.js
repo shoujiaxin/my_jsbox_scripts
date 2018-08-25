@@ -1,6 +1,7 @@
 $app.validEnv = $env.app
-const currVersion = "1.1.0"  // 版本号
+const currVersion = "1.1.1"  // 版本号
 checkUpdate()
+let mainColor = "#508aeb"
 getLocation()
 
 function getLocation() {
@@ -28,26 +29,65 @@ function getCity(lat, lng) {
 function loadPage(lat, lng, cityId, cityName) {
     $ui.render({
         props: {
-            title: "车来了",
-            bgcolor: $color("#E0E0E0")
+            navBarHidden: true
         },
         views: [{
+            type: "view",
+            props: {
+                id: "titleView",
+                bgcolor: $color(mainColor)
+            },
+            layout: function (make, view) {
+                make.left.top.right.inset(0)
+                make.height.equalTo(64)
+            },
+            views: [{
+                type: "button",
+                props: {
+                    id: "titleBtn",
+                    title: `车来了 - ${$text.URLDecode(cityName)}`,
+                    font: $font("bold", 20),
+                    bgcolor: $color("clear")
+                },
+                layout: function (make, view) {
+                    make.top.inset(25)
+                    make.centerX.equalTo(view.super)
+                },
+                events: {
+                    tapped: function (sender) {
+                        getLocation()
+                    }
+                }
+            }, {
+                type: "button",
+                props: {
+                    id: "quitBtn",
+                    icon: $icon("015", $color("white"), $size(20, 20)),
+                    bgcolor: $color("clear")
+                },
+                layout: function (make, view) {
+                    make.left.inset(18)
+                    make.centerY.equalTo($("titleBtn").centerY)
+                },
+                events: {
+                    tapped: function (sender) {
+                        $app.close()
+                    }
+                }
+            }]
+        }, {
             type: "web",
             props: {
                 id: "webView",
                 url: `http://web.chelaile.net.cn/ch5/index.html?showFav=1&switchCity=0&utm_source=webapp_meizu_map&showTopLogo=0&gpstype=wgs&src=webapp_meizu_map&utm_medium=menu&showHeader=1&hideFooter=1&cityName=${cityName}&cityId=${cityId}&supportSubway=1&cityVersion=0&lat=${lat}&lng=${lng}#!/linearound`,
                 bounces: false,
                 transparent: true,
-                showsProgress: false
+                showsProgress: false,
+                style: `.detail__bottom.show-fav .swap-container, .detail__bottom.show-fav .fav-container, .detail__bottom.show-fav .ads, .detail__bottom.show-fav .same-station-container, .detail__bottom.show-fav .refresh-container{background-color:transparent !important}.container{max-width:none}.page-list .switch-city{display:none;}.page-list .div-imitate-search-ui{padding:9px;}.around-refresh{background-color: ${mainColor}}.page-list .div-imitate-input{text-align: center;}`
             },
             layout: function (make, view) {
-                if ($device.info.screen.width <= 736) {
-                    make.left.top.right.bottom.inset(0)
-                } else {
-                    make.center.equalTo(view.center)
-                    make.height.equalTo(view.super)
-                    make.width.equalTo(736)
-                }
+                make.left.right.bottom.inset(0)
+                make.top.equalTo($("titleView").bottom)
             }
         }]
     })
