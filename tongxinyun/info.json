@@ -1,5 +1,5 @@
 {
     "name": "tongxinyun.js",
-    "version": 0.2,
-    "msg": "更新日志：\n1. 增加账号详细信息"
+    "version": "0.2.1",
+    "msg": "更新日志：\n1. 修复 UI 问题"
 }

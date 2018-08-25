@@ -1,6 +1,6 @@
 $app.validEnv = $env.app
 $app.rotateDisabled = true
-const currVersion = 0.2  // 版本号
+const currVersion = "0.2.1"  // 版本号
 checkUpdate()
 var cookie
 var myUserId
@@ -288,7 +288,7 @@ function showHomePage(microblogData, profileData) {
                     bgcolor: $color("white")
                 },
                 layout: function (make, view) {
-                    make.left.top.right.inset(20)
+                    make.left.top.right.inset(10)
                     make.height.equalTo(150)
                     addShadow(view)
                 },
@@ -298,8 +298,14 @@ function showHomePage(microblogData, profileData) {
                         src: `http://yun.tongji.edu.cn${myPhotoUrl}`
                     },
                     layout: function (make, view) {
-                        make.left.top.bottom.inset(25)
-                        make.width.equalTo(100)
+                        make.size.equalTo($size(80, 80))
+                        make.left.inset(10)
+                        make.centerY.equalTo(view.super)
+                    },
+                    events: {
+                        tapped: function (sender) {
+                            showProfile(profileData)
+                        }
                     }
                 }, {
                     type: "list",
@@ -311,40 +317,55 @@ function showHomePage(microblogData, profileData) {
                         scrollEnabled: false,
                     },
                     layout: function (make, view) {
-                        make.left.equalTo($("image").right).offset(50)
+                        make.left.equalTo($("image").right).offset(10)
                         make.top.right.bottom.inset(25)
+                    },
+                    events: {
+                        tapped: function (sender) {
+                            showProfile(profileData)
+                        }
                     }
                 }]
-            }, {
-                type: "view",
+            }]
+        }]
+    })
+}
+
+function showProfile(profileData) {
+    $ui.push({
+        props: {
+            title: "个人信息",
+            bgcolor: $color("#E0E0E0")
+        },
+        views: [{
+            type: "view",
+            props: {
+                bgcolor: $color("white")
+            },
+            layout: function (make, view) {
+                make.left.top.right.inset(10)
+                make.height.equalTo(220)
+                addShadow(view)
+            },
+            views: [{
+                type: "list",
                 props: {
-                    bgcolor: $color("white")
+                    data: [{
+                        title: "部门",
+                        rows: [profileData[2]]
+                    }, {
+                        title: "邮箱",
+                        rows: [profileData[3]]
+                    }],
+                    separatorHidden: true,
+                    selectable: false,
+                    bgcolor: $color("clear"),
+                    scrollEnabled: false,
                 },
                 layout: function (make, view) {
-                    make.left.right.inset(0)
-                    make.top.inset(190)
-                    make.height.equalTo(220)
-                },
-                views: [{
-                    type: "list",
-                    props: {
-                        data: [{
-                            title: "部门",
-                            rows: [profileData[2]]
-                        }, {
-                            title: "邮箱",
-                            rows: [profileData[3]]
-                        }],
-                        separatorHidden: true,
-                        selectable: false,
-                        bgcolor: $color("clear"),
-                        scrollEnabled: false,
-                    },
-                    layout: function (make, view) {
-                        make.left.right.bottom.inset(20)
-                        make.top.inset(0)
-                    }
-                }]
+                    make.left.right.bottom.inset(20)
+                    make.top.inset(0)
+                }
             }]
         }]
     })
@@ -373,7 +394,7 @@ function checkUpdate() {
             if (currVersion < newVersion) {
                 $ui.alert({
                     title: "检测到新版本！",
-                    message: `v${newVersion.toFixed(1)} ${msg}`,
+                    message: `v${newVersion} ${msg}`,
                     actions: [
                         {
                             title: "更新",

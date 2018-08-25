@@ -1,5 +1,5 @@
 $app.validEnv = $env.app
-const currVersion = 1.0  // 版本号
+const currVersion = "1.0.0"  // 版本号
 checkUpdate()
 var tlList = {
     "阿拉伯语": "ar",
@@ -476,7 +476,7 @@ function checkUpdate() {
             if (currVersion < newVersion) {
                 $ui.alert({
                     title: "检测到新版本！",
-                    message: `v${newVersion.toFixed(1)} ${msg}`,
+                    message: `v${newVersion} ${msg}`,
                     actions: [
                         {
                             title: "更新",
