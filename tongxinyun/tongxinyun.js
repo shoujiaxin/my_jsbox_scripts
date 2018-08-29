@@ -367,7 +367,7 @@ function showHomePage(microblogData, profileData) {
                 layout: function (make, view) {
                     make.left.top.right.inset(10)
                     make.height.equalTo(150)
-                    addShadow(view, 0, 6)
+                    addShadow(view, 2, 6)
                 },
                 views: [{
                     type: "image",
@@ -423,7 +423,7 @@ function showProfile(profileData) {
             layout: function (make, view) {
                 make.left.top.right.inset(10)
                 make.height.equalTo(220)
-                addShadow(view, 0, 6)
+                addShadow(view, 2, 6)
             },
             views: [{
                 type: "list",

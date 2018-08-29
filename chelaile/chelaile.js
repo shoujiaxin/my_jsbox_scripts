@@ -1,5 +1,5 @@
 $app.validEnv = $env.app
-const currVersion = "1.1.1"  // 版本号
+const currVersion = "1.1.2"  // 版本号
 checkUpdate()
 let mainColor = "#508aeb"
 getLocation()
@@ -83,11 +83,16 @@ function loadPage(lat, lng, cityId, cityName) {
                 bounces: false,
                 transparent: true,
                 showsProgress: false,
-                style: `.detail__bottom.show-fav .swap-container, .detail__bottom.show-fav .fav-container, .detail__bottom.show-fav .ads, .detail__bottom.show-fav .same-station-container, .detail__bottom.show-fav .refresh-container{background-color:transparent !important}.container{max-width:none}.page-list .switch-city{display:none;}.page-list .div-imitate-search-ui{padding:9px;}.around-refresh{background-color: ${mainColor}}.page-list .div-imitate-input{text-align: center;}`
+                style: `.detail__bottom.show-fav .swap-container, .detail__bottom.show-fav .fav-container, .detail__bottom.show-fav .ads, .detail__bottom.show-fav .same-station-container, .detail__bottom.show-fav .refresh-container{background-color:transparent !important}.container{max-width:none}.page-list .switch-city{display:none;}.page-list .div-imitate-search-ui{padding:8px;}.around-refresh{background-color: ${mainColor}}.page-list .div-imitate-input{text-align: left;}`
             },
             layout: function (make, view) {
-                make.left.right.bottom.inset(0)
                 make.top.equalTo($("titleView").bottom)
+                if ($device.info.screen.height > 500) {
+                    make.left.right.inset(0)
+                    make.height.equalTo($device.info.screen.height - 32)
+                } else {
+                    make.left.right.bottom.inset(0)
+                }
             }
         }]
     })
