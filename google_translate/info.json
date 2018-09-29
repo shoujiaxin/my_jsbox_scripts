@@ -1,5 +1,5 @@
 {
     "name": "google_translate.js",
-    "version": "1.0.0",
-    "msg": "更新日志：\n1. 加入自动更新功能"
+    "version": "1.0.1",
+    "msg": "更新日志：\n1. 修复语法错误"
 }

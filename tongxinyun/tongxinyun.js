@@ -240,10 +240,12 @@ async function getContent() {
     let weiboCnt = result[result.length - 1]
     let status = `粉丝：${follower}\t关注：${following}\t微博：${weiboCnt}`
     result = /部门：\n(.*)<\/span>/.exec(profileResp.data)[1].split("&gt;")
-    let department = `${result[result.length - 3]} > ${result[result.length - 2]} > ${result[result.length - 1]}`
+    let college = result[result.length - 3]
+    let major = result[result.length - 2]
+    let grade = result[result.length - 1]
     result = /mailto:(.*)'/.exec(profileResp.data)[1].split(":")
     let email = result[result.length - 1]
-    let profileData = [name, status, department, email]
+    let profileData = [name, status, college, major, grade, email]
 
     await showHomePage(microblogResp.data, profileData)
 }
@@ -422,7 +424,7 @@ function showProfile(profileData) {
             },
             layout: function (make, view) {
                 make.left.top.right.inset(10)
-                make.height.equalTo(220)
+                make.height.equalTo(310)
                 addShadow(view, 2, 6)
             },
             views: [{
@@ -430,10 +432,10 @@ function showProfile(profileData) {
                 props: {
                     data: [{
                         title: "部门",
-                        rows: [profileData[2]]
+                        rows: [profileData[2], profileData[3], profileData[4]]
                     }, {
                         title: "邮箱",
-                        rows: [profileData[3]]
+                        rows: [profileData[5]]
                     }],
                     separatorHidden: true,
                     selectable: false,

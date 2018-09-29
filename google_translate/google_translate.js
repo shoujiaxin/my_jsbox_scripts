@@ -1,5 +1,5 @@
 $app.validEnv = $env.app
-const currVersion = "1.0.0"  // 版本号
+const currVersion = "1.0.1"  // 版本号
 checkUpdate()
 var tlList = {
     "阿拉伯语": "ar",
@@ -420,7 +420,7 @@ function translate() {
         return
     }
 
-    text = $("slText").text
+    let text = $("slText").text
     if (text == "") {
         $("tlText").text = ""
         return
@@ -450,7 +450,7 @@ function translate() {
         handler: function (resp) {
             let result = resp.data[0]
             let resultText = ""
-            for (i = 0; i < result.length; i++) {
+            for (let i = 0; i < result.length; i++) {
                 resultText += result[i][0]
             }
             $("tlText").text = resultText
