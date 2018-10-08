@@ -479,7 +479,7 @@ function checkUpdate() {
                         {
                             title: "更新",
                             handler: function () {
-                                let updateUrl = "jsbox://install?url=https://raw.githubusercontent.com/shoujiaxin/my_jsbox_scripts/master/tongxinyun/tongxinyun.js&name=同心云"
+                                let updateUrl = "jsbox://import?url=https://raw.githubusercontent.com/shoujiaxin/my_jsbox_scripts/master/tongxinyun/tongxinyun.js&name=同心云"
                                 $app.openURL(encodeURI(updateUrl))
                                 $app.close()
                             }

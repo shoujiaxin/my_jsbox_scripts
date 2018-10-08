@@ -112,7 +112,7 @@ function checkUpdate() {
                         {
                             title: "更新",
                             handler: function () {
-                                let updateUrl = "jsbox://install?url=https://raw.githubusercontent.com/shoujiaxin/my_jsbox_scripts/master/chelaile/chelaile.js&name=车来了&icon=icon_087.png"
+                                let updateUrl = "jsbox://import?url=https://raw.githubusercontent.com/shoujiaxin/my_jsbox_scripts/master/chelaile/chelaile.js&name=车来了&icon=icon_087.png"
                                 $app.openURL(encodeURI(updateUrl))
                                 $app.close()
                             }

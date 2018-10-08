@@ -483,7 +483,7 @@ function checkUpdate() {
                         {
                             title: "更新",
                             handler: function () {
-                                let updateUrl = "jsbox://install?url=https://raw.githubusercontent.com/shoujiaxin/my_jsbox_scripts/master/google_translate/google_translate.js&name=Google Translate"
+                                let updateUrl = "jsbox://import?url=https://raw.githubusercontent.com/shoujiaxin/my_jsbox_scripts/master/google_translate/google_translate.js&name=Google Translate"
                                 $app.openURL(encodeURI(updateUrl))
                                 $app.close()
                             }
