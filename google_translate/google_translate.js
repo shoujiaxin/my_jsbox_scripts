@@ -1,5 +1,5 @@
 $app.validEnv = $env.app
-const currVersion = "1.0.1"  // 版本号
+const currVersion = "1.0.2"  // 版本号
 checkUpdate()
 var tlList = {
     "阿拉伯语": "ar",
@@ -429,6 +429,7 @@ function translate() {
     var sl = slList[$("slButton").title]
     var tl = tlList[$("tlButton").title]
 
+    $ui.loading(true)
 
     $http.request({
         method: "POST",
@@ -454,6 +455,7 @@ function translate() {
                 resultText += result[i][0]
             }
             $("tlText").text = resultText
+            $ui.loading(false)
         }
     })
 }
