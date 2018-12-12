@@ -108,18 +108,19 @@ function checkUpdate() {
                 $ui.alert({
                     title: "检测到新版本！",
                     message: `v${newVersion} ${msg}`,
-                    actions: [
-                        {
-                            title: "更新",
-                            handler: function () {
-                                let updateUrl = "jsbox://import?url=https://raw.githubusercontent.com/shoujiaxin/my_jsbox_scripts/master/chelaile/chelaile.js&name=车来了&icon=icon_087.png"
-                                $app.openURL(encodeURI(updateUrl))
-                                $app.close()
-                            }
-                        }, {
-                            title: "取消"
+                    actions: [{
+                        title: "取消",
+                        handler: function () {
+                            // do nothing
                         }
-                    ]
+                    }, {
+                        title: "更新",
+                        handler: function () {
+                            let updateUrl = "jsbox://import?url=https://raw.githubusercontent.com/shoujiaxin/my_jsbox_scripts/master/chelaile/chelaile.js&name=车来了&icon=icon_087.png"
+                            $app.openURL(encodeURI(updateUrl))
+                            $app.close()
+                        }
+                    }]
                 })
             }
         }

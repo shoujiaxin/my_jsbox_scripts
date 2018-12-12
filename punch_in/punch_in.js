@@ -1,5 +1,5 @@
 // $app.validEnv = $env.app
-const currVersion = "0.2.0"  // 版本号
+const currVersion = "0.2.1"  // 版本号
 checkUpdate()
 var historyCnt = 0
 var historyData = new Array()
@@ -7,7 +7,7 @@ getHistory(0, 100)
 
 $ui.render({
     props: {
-        title: "Punch In",
+        title: "打卡记录",
         bgcolor: $color("#F0F0F0")
     },
     views: [{
@@ -46,7 +46,7 @@ $ui.render({
                 db.close()
                 $ui.toast(`${dateStr} ${timeStr} 已打卡`)
 
-                updateHistoryList()
+                updateHistory()
             }
         }
     }, {
@@ -78,7 +78,26 @@ $ui.render({
                     align: $align.center,
                     font: $font(14)
                 }
-            }
+            },
+            actions: [
+                {
+                    title: "删除",
+                    color: $color("red"),
+                    handler: function (sender, indexPath) {
+                        let date = sender.data[indexPath.section].title
+                        let time = sender.data[indexPath.section].rows[indexPath.row]
+                        deleteHistory(date, time)
+                    }
+                },
+                {
+                    title: "修改",
+                    handler: function (sender, indexPath) {
+                        let date = sender.data[indexPath.section].title
+                        let time = sender.data[indexPath.section].rows[indexPath.row]
+                        editHistory(date, time)
+                    }
+                }
+            ]
         },
         layout: function (make, view) {
             make.left.right.bottom.inset(10)
@@ -87,13 +106,10 @@ $ui.render({
         events: {
             pulled: function (sender) {
                 sender.beginRefreshing()
-                updateHistoryList()
+                updateHistory()
                 $delay(0.5, function () {
                     sender.endRefreshing()
                 })
-            },
-            didLongPress: function (sender, indexPath, data) {
-                editTime(sender.data[indexPath.section].title, data)
             }
         }
     }]
@@ -133,7 +149,7 @@ function getHistory(start, limit) {
     db.close()
 }
 
-function updateHistoryList() {
+function updateHistory() {
     $ui.loading(true)
     historyData = []
     historyCnt = 0
@@ -143,13 +159,24 @@ function updateHistoryList() {
     $ui.loading(false)
 }
 
-function editTime(date, time) {
+function editHistory(date, time) {
     $ui.push({
         props: {
-            title: "Edit",
+            title: "修改",
             bgcolor: $color("#F0F0F0")
         },
         views: [{
+            type: "label",
+            props: {
+                id: "dateLabel",
+                text: date,
+                align: $align.center
+            },
+            layout: function (make, view) {
+                make.centerX.equalTo(view.super)
+                make.left.top.right.inset(10)
+            }
+        }, {
             type: "input",
             props: {
                 id: "timeInput",
@@ -158,14 +185,15 @@ function editTime(date, time) {
                 bgcolor: $color("white")
             },
             layout: function (make, view) {
-                make.left.top.right.inset(20)
+                make.left.right.inset(20)
+                make.top.equalTo($("dateLabel").bottom).offset(10)
                 make.height.equalTo(50)
             }
         }, {
             type: "button",
             props: {
                 id: "confirmButton",
-                title: "修 改",
+                title: "确 定",
                 font: $font(20)
             },
             layout: function (make, view) {
@@ -182,30 +210,28 @@ function editTime(date, time) {
 
                     $("timeInput").blur()
                     $ui.alert({
-                        title: "确定修改吗？",
-                        actions: [
-                            {
-                                title: "OK",
-                                disabled: false,
-                                handler: function () {
-                                    let db = $sqlite.open("punch_history.db")
-                                    db.update({
-                                        sql: "UPDATE History SET time = ? WHERE date = ? AND time = ?",
-                                        args: [$("timeInput").text, date, time]
-                                    })
-                                    db.close()
-
-                                    $ui.pop()
-                                    updateHistoryList()
-                                    $ui.toast("已修改")
-                                }
-                            }, {
-                                title: "Cancel",
-                                handler: function () {
-                                    // do nothing
-                                }
+                        title: "确定要修改吗？",
+                        actions: [{
+                            title: "取消",
+                            handler: function () {
+                                // do nothing
                             }
-                        ]
+                        }, {
+                            title: "确定",
+                            disabled: false,
+                            handler: function () {
+                                let db = $sqlite.open("punch_history.db")
+                                db.update({
+                                    sql: "UPDATE History SET time = ? WHERE date = ? AND time = ?",
+                                    args: [$("timeInput").text, date, time]
+                                })
+                                db.close()
+
+                                $ui.pop()
+                                updateHistory()
+                                $ui.toast("已修改")
+                            }
+                        }]
                     })
                 }
             }
@@ -215,6 +241,32 @@ function editTime(date, time) {
                 $("timeInput").blur()
             }
         }
+    })
+}
+
+function deleteHistory(date, time) {
+    $ui.alert({
+        title: "确定要删除吗？",
+        actions: [{
+            title: "取消",
+            handler: function () {
+                // do nothing
+            }
+        }, {
+            title: "确定",
+            disabled: false,
+            handler: function () {
+                let db = $sqlite.open("punch_history.db")
+                db.update({
+                    sql: "DELETE FROM History WHERE date = ? AND time = ?",
+                    args: [date, time]
+                })
+                db.close()
+
+                updateHistory()
+                $ui.toast("已删除")
+            }
+        }]
     })
 }
 
@@ -228,18 +280,19 @@ function checkUpdate() {
                 $ui.alert({
                     title: "检测到新版本！",
                     message: `v${newVersion} ${msg}`,
-                    actions: [
-                        {
-                            title: "更新",
-                            handler: function () {
-                                let updateUrl = "jsbox://import?url=https://raw.githubusercontent.com/shoujiaxin/my_jsbox_scripts/master/punch_in/punch_in.js&name=Punch In"
-                                $app.openURL(encodeURI(updateUrl))
-                                $app.close()
-                            }
-                        }, {
-                            title: "取消"
+                    actions: [{
+                        title: "取消",
+                        handler: function () {
+                            // do nothing
                         }
-                    ]
+                    }, {
+                        title: "更新",
+                        handler: function () {
+                            let updateUrl = "jsbox://import?url=https://raw.githubusercontent.com/shoujiaxin/my_jsbox_scripts/master/punch_in/punch_in.js&name=Punch In"
+                            $app.openURL(encodeURI(updateUrl))
+                            $app.close()
+                        }
+                    }]
                 })
             }
         }
