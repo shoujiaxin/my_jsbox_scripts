@@ -225,7 +225,7 @@ function checkUpdate() {
                         {
                             title: "更新",
                             handler: function () {
-                                let updateUrl = "jsbox://import?url=https://raw.githubusercontent.com/shoujiaxin/my_jsbox_scripts/master/weather_reminder/weather_reminder.js&name=Weather%20Reminder"
+                                let updateUrl = "jsbox://import?url=https://raw.githubusercontent.com/shoujiaxin/my_jsbox_scripts/master/weather_reminder/weather_reminder.js&name=Weather Reminder"
                                 $app.openURL(encodeURI(updateUrl))
                                 $app.close()
                             }
