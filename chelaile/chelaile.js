@@ -1,5 +1,5 @@
 $app.validEnv = $env.app
-const currVersion = "1.1.2"  // 版本号
+const currVersion = "1.1.3"  // 版本号
 checkUpdate()
 let mainColor = "#508aeb"
 getLocation()
@@ -87,12 +87,7 @@ function loadPage(lat, lng, cityId, cityName) {
             },
             layout: function (make, view) {
                 make.top.equalTo($("titleView").bottom)
-                if ($device.info.screen.height > 500) {
-                    make.left.right.inset(0)
-                    make.height.equalTo($device.info.screen.height - 32)
-                } else {
-                    make.left.right.bottom.inset(0)
-                }
+                make.left.right.bottom.inset(0)
             }
         }]
     })

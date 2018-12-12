@@ -27,7 +27,7 @@ function showWeather(result) {
     let forecastKeypoint = result.forecast_keypoint     // 最近几小时天气
     let hourlyDescription = result.hourly.description   // 今日天气
     let todayDate = result.daily.temperature[1].date    // 日期
-    let todayTempAvg = result.daily.temperature[1].avg  // 平均温度
+    // let todayTempAvg = result.daily.temperature[1].avg  // 平均温度
     let todayTempMin = result.daily.temperature[1].min  // 最低温度
     let todayTempMax = result.daily.temperature[1].max  // 最高温度
     let todayAqi = result.daily.aqi[1].avg              // AQI
@@ -221,18 +221,19 @@ function checkUpdate() {
                 $ui.alert({
                     title: "检测到新版本！",
                     message: `v${newVersion} ${msg}`,
-                    actions: [
-                        {
-                            title: "更新",
-                            handler: function () {
-                                let updateUrl = "jsbox://import?url=https://raw.githubusercontent.com/shoujiaxin/my_jsbox_scripts/master/weather_reminder/weather_reminder.js&name=Weather Reminder"
-                                $app.openURL(encodeURI(updateUrl))
-                                $app.close()
-                            }
-                        }, {
-                            title: "取消"
+                    actions: [{
+                        title: "取消",
+                        handler: function () {
+                            // do nothing
                         }
-                    ]
+                    }, {
+                        title: "更新",
+                        handler: function () {
+                            let updateUrl = "jsbox://import?url=https://raw.githubusercontent.com/shoujiaxin/my_jsbox_scripts/master/weather_reminder/weather_reminder.js&name=Weather Reminder"
+                            $app.openURL(encodeURI(updateUrl))
+                            $app.close()
+                        }
+                    }]
                 })
             }
         }
