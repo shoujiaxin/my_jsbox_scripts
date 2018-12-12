@@ -1,5 +1,5 @@
 // $app.validEnv = $env.app
-const currVersion = "0.1.0"  // 版本号
+const currVersion = "0.1.1"  // 版本号
 checkUpdate()
 let apiKey = "TAkhjf8d1nlSlspN"
 
@@ -24,13 +24,13 @@ function getWeather() {
 }
 
 function showWeather(result) {
-    let forecastKeypoint = result.forecast_keypoint
-    let hourlyDescription = result.hourly.description
-    let todayDate = result.daily.temperature[1].date
-    let todayTempAvg = result.daily.temperature[1].avg
-    let todayTempMin = result.daily.temperature[1].min
-    let todayTempMax = result.daily.temperature[1].max
-    let todayAqi = result.daily.aqi[1].avg
+    let forecastKeypoint = result.forecast_keypoint     // 最近几小时天气
+    let hourlyDescription = result.hourly.description   // 今日天气
+    let todayDate = result.daily.temperature[1].date    // 日期
+    let todayTempAvg = result.daily.temperature[1].avg  // 平均温度
+    let todayTempMin = result.daily.temperature[1].min  // 最低温度
+    let todayTempMax = result.daily.temperature[1].max  // 最高温度
+    let todayAqi = result.daily.aqi[1].avg              // AQI
 
     let todayWeatherIcon = $icon("008", $color("tint"))
     switch (result.daily.skycon[1].value) {
@@ -163,14 +163,26 @@ function showWeather(result) {
                 type: "label",
                 props: {
                     id: "todayTempLabel",
-                    text: `温度：${todayTempMin} - ${todayTempMax} ℃，平均：${todayTempAvg} ℃`,
+                    text: `温度：${todayTempMin} ~ ${todayTempMax} ℃`,
                     align: $align.center
                 },
                 layout: function (make, view) {
                     make.centerX.equalTo(view.super)
-                    make.left.right.inset(10)
+                    make.left.right.inset(110)
                     make.top.equalTo($("hourlyDescriptionLabel").bottom)
                     make.height.equalTo(40)
+                }
+            }, {
+                type: "image",
+                props: {
+                    id: "todayTempIcon",
+                    icon: $icon("095", $color("tint")),
+                    bgcolor: $color("clear")
+                },
+                layout: function (make, view) {
+                    make.right.equalTo($("todayTempLabel").left)
+                    make.centerY.equalTo($("todayTempLabel"))
+                    make.size.equalTo($size(18, 18))
                 }
             }, {
                 type: "label",

@@ -1,5 +1,5 @@
 {
     "name": "weather_reminder.js",
-    "version": "0.1.0",
-    "msg": ""
+    "version": "0.1.1",
+    "msg": "更新日志：\n1. 增加温度图标"
 }
