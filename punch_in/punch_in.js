@@ -1,5 +1,5 @@
 // $app.validEnv = $env.app
-const currVersion = "0.1.0"  // 版本号
+const currVersion = "0.2.0"  // 版本号
 checkUpdate()
 var historyCnt = 0
 var historyData = new Array()
@@ -38,11 +38,11 @@ $ui.render({
                 let timeStr = `${hour}:${min}`
 
                 let db = $sqlite.open("punch_history.db")
-                db.update("CREATE TABLE History(date text, time text)");
+                db.update("CREATE TABLE History(date text, time text)")
                 db.update({
                     sql: "INSERT INTO History values(?, ?)",
                     args: [dateStr, timeStr]
-                });
+                })
                 db.close()
                 $ui.toast(`${dateStr} ${timeStr} 已打卡`)
 
@@ -91,10 +91,13 @@ $ui.render({
                 $delay(0.5, function () {
                     sender.endRefreshing()
                 })
+            },
+            didLongPress: function (sender, indexPath, data) {
+                editTime(sender.data[indexPath.section].title, data)
             }
         }
     }]
-});
+})
 
 function getHistory(start, limit) {
     let db = $sqlite.open("punch_history.db")
@@ -102,7 +105,7 @@ function getHistory(start, limit) {
     if (start > 0) {
         cmd = `SELECT * FROM History ORDER BY date DESC LIMIT ${start},${limit}`
     }
-    let object = db.query(cmd);
+    let object = db.query(cmd)
 
     let result = object.result
     if (!result) {
@@ -126,15 +129,93 @@ function getHistory(start, limit) {
         }
         historyCnt++
     }
+    result.close()
     db.close()
 }
 
 function updateHistoryList() {
+    $ui.loading(true)
     historyData = []
     historyCnt = 0
     getHistory(0, 100)
     $("historyList").data = historyData
     $("historyList").footer.text = `最近 ${historyCnt} 条记录`
+    $ui.loading(false)
+}
+
+function editTime(date, time) {
+    $ui.push({
+        props: {
+            title: "Edit",
+            bgcolor: $color("#F0F0F0")
+        },
+        views: [{
+            type: "input",
+            props: {
+                id: "timeInput",
+                text: time,
+                font: $font(20),
+                bgcolor: $color("white")
+            },
+            layout: function (make, view) {
+                make.left.top.right.inset(20)
+                make.height.equalTo(50)
+            }
+        }, {
+            type: "button",
+            props: {
+                id: "confirmButton",
+                title: "修 改",
+                font: $font(20)
+            },
+            layout: function (make, view) {
+                make.centerX.equalTo(view.super)
+                make.left.right.inset(150)
+                make.top.equalTo($("timeInput").bottom).inset(20)
+                make.height.equalTo(40)
+            },
+            events: {
+                tapped: function (sender) {
+                    if ($("timeInput").text == time) {
+                        return
+                    }
+
+                    $("timeInput").blur()
+                    $ui.alert({
+                        title: "确定修改吗？",
+                        actions: [
+                            {
+                                title: "OK",
+                                disabled: false,
+                                handler: function () {
+                                    let db = $sqlite.open("punch_history.db")
+                                    db.update({
+                                        sql: "UPDATE History SET time = ? WHERE date = ? AND time = ?",
+                                        args: [$("timeInput").text, date, time]
+                                    })
+                                    db.close()
+
+                                    $ui.pop()
+                                    updateHistoryList()
+                                    $ui.toast("已修改")
+                                }
+                            }, {
+                                title: "Cancel",
+                                handler: function () {
+                                    // do nothing
+                                }
+                            }
+                        ]
+                    })
+                }
+            }
+        }],
+        events: {
+            tapped: function (sender) {
+                $("timeInput").blur()
+            }
+        }
+    })
 }
 
 function checkUpdate() {
