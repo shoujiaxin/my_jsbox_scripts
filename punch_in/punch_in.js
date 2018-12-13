@@ -1,9 +1,9 @@
 // $app.validEnv = $env.app
-const currVersion = "0.2.1"  // 版本号
+const currVersion = "0.2.2"  // 版本号
 checkUpdate()
 var historyCnt = 0
 var historyData = new Array()
-getHistory(0, 100)
+getHistory()
 
 $ui.render({
     props: {
@@ -115,37 +115,38 @@ $ui.render({
     }]
 })
 
-function getHistory(start, limit) {
-    let db = $sqlite.open("punch_history.db")
-    let cmd = `SELECT * FROM History ORDER BY date DESC LIMIT ${limit}`
-    if (start > 0) {
-        cmd = `SELECT * FROM History ORDER BY date DESC LIMIT ${start},${limit}`
-    }
-    let object = db.query(cmd)
+function getHistory() {
+    let dateList = []
 
-    let result = object.result
-    if (!result) {
+    let db = $sqlite.open("punch_history.db")
+    let object = db.query("SELECT DISTINCT date FROM History ORDER BY date DESC")
+    if (object.error) {
+        db.close()
         return
     }
-
-    let item = { "title": "", "rows": "" }
-    let rows = new Array()
+    let result = object.result
     while (result.next()) {
-        let date = result.get("date")
-        let time = result.get("time")
-
-        if (item["title"] == date) {
-            rows.push(time)
-        } else {
-            item["rows"] = rows
-            historyData.push(item)
-            rows.length = 0  // 清空 rows
-            item["title"] = date
-            rows.push(time)
-        }
-        historyCnt++
+        dateList.push(result.get("date"))
     }
     result.close()
+
+    for (let i = 0; i < dateList.length; i++) {
+        let item = {
+            title: dateList[i],
+            rows: []
+        }
+        object = db.query({
+            sql: "SELECT time FROM History WHERE date = ?",
+            args: [dateList[i]]
+        })
+        result = object.result
+        while (result.next()) {
+            item.rows.push(result.get("time"))
+            historyCnt++
+        }
+        result.close()
+        historyData.push(item)
+    }
     db.close()
 }
 
@@ -153,7 +154,7 @@ function updateHistory() {
     $ui.loading(true)
     historyData = []
     historyCnt = 0
-    getHistory(0, 100)
+    getHistory()
     $("historyList").data = historyData
     $("historyList").footer.text = `最近 ${historyCnt} 条记录`
     $ui.loading(false)
