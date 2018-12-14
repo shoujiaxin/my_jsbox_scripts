@@ -1,5 +1,5 @@
 // $app.validEnv = $env.app
-const currVersion = "0.2.2"  // 版本号
+const currVersion = "0.3.0"  // 版本号
 checkUpdate()
 var historyCnt = 0
 var historyData = new Array()
@@ -27,14 +27,11 @@ $ui.render({
             tapped: function (sender) {
                 let date = new Date()
                 let year = date.getFullYear()
-                let month = date.getMonth() + 1
-                let day = date.getDate()
+                let month = formatDateAndTime(date.getMonth() + 1)
+                let day = formatDateAndTime(date.getDate())
                 let dateStr = `${year}-${month}-${day}`
-                let hour = date.getHours()
-                let min = date.getMinutes()
-                if (min >= 0 && min <= 9) {
-                    min = "0" + min
-                }
+                let hour = formatDateAndTime(date.getHours())
+                let min = formatDateAndTime(date.getMinutes())
                 let timeStr = `${hour}:${min}`
 
                 let db = $sqlite.open("punch_history.db")
@@ -84,7 +81,7 @@ $ui.render({
                     title: "删除",
                     color: $color("red"),
                     handler: function (sender, indexPath) {
-                        let date = sender.data[indexPath.section].title
+                        let date = sender.data[indexPath.section].title.split("（")[0]
                         let time = sender.data[indexPath.section].rows[indexPath.row]
                         deleteHistory(date, time)
                     }
@@ -92,7 +89,7 @@ $ui.render({
                 {
                     title: "修改",
                     handler: function (sender, indexPath) {
-                        let date = sender.data[indexPath.section].title
+                        let date = sender.data[indexPath.section].title.split("（")[0]
                         let time = sender.data[indexPath.section].rows[indexPath.row]
                         editHistory(date, time)
                     }
@@ -115,6 +112,13 @@ $ui.render({
     }]
 })
 
+function formatDateAndTime(value) {
+    if (0 <= value && value <= 9) {
+        value = "0" + value
+    }
+    return value
+}
+
 function getHistory() {
     let dateList = []
 
@@ -136,7 +140,7 @@ function getHistory() {
             rows: []
         }
         object = db.query({
-            sql: "SELECT time FROM History WHERE date = ?",
+            sql: "SELECT time FROM History WHERE date = ? ORDER BY time ASC",
             args: [dateList[i]]
         })
         result = object.result
@@ -145,6 +149,7 @@ function getHistory() {
             historyCnt++
         }
         result.close()
+        item.title += "（共 " + getResult(dateList[i], item.rows) + " 小时）"
         historyData.push(item)
     }
     db.close()
@@ -170,12 +175,35 @@ function editHistory(date, time) {
             type: "label",
             props: {
                 id: "dateLabel",
-                text: date,
-                align: $align.center
+                text: "打卡日期",
             },
             layout: function (make, view) {
-                make.centerX.equalTo(view.super)
-                make.left.top.right.inset(10)
+                make.left.inset(10)
+                make.top.inset(40)
+            }
+        }, {
+            type: "input",
+            props: {
+                id: "dateInput",
+                text: date,
+                font: $font(20),
+                bgcolor: $color("white")
+            },
+            layout: function (make, view) {
+                make.left.equalTo($("dateLabel").right).offset(10)
+                make.right.inset(10)
+                make.centerY.equalTo($("dateLabel"))
+                make.height.equalTo(50)
+            }
+        }, {
+            type: "label",
+            props: {
+                id: "timeLabel",
+                text: "打卡时间",
+            },
+            layout: function (make, view) {
+                make.left.inset(10)
+                make.top.inset(100)
             }
         }, {
             type: "input",
@@ -186,8 +214,9 @@ function editHistory(date, time) {
                 bgcolor: $color("white")
             },
             layout: function (make, view) {
-                make.left.right.inset(20)
-                make.top.equalTo($("dateLabel").bottom).offset(10)
+                make.left.equalTo($("timeLabel").right).offset(10)
+                make.right.inset(10)
+                make.centerY.equalTo($("timeLabel"))
                 make.height.equalTo(50)
             }
         }, {
@@ -205,10 +234,11 @@ function editHistory(date, time) {
             },
             events: {
                 tapped: function (sender) {
-                    if ($("timeInput").text == time) {
+                    if ($("dateInput").text == date && $("timeInput").text == time) {
                         return
                     }
 
+                    $("dateInput").blur()
                     $("timeInput").blur()
                     $ui.alert({
                         title: "确定要修改吗？",
@@ -223,8 +253,8 @@ function editHistory(date, time) {
                             handler: function () {
                                 let db = $sqlite.open("punch_history.db")
                                 db.update({
-                                    sql: "UPDATE History SET time = ? WHERE date = ? AND time = ?",
-                                    args: [$("timeInput").text, date, time]
+                                    sql: "UPDATE History SET date = ?, time = ? WHERE date = ? AND time = ?",
+                                    args: [$("dateInput").text, $("timeInput").text, date, time]
                                 })
                                 db.close()
 
@@ -239,6 +269,7 @@ function editHistory(date, time) {
         }],
         events: {
             tapped: function (sender) {
+                $("dateInput").blur()
                 $("timeInput").blur()
             }
         }
@@ -269,6 +300,50 @@ function deleteHistory(date, time) {
             }
         }]
     })
+}
+
+function getResult(date, timeList) {
+    let result = 0
+    let currIndex = 0
+    let startTime = timeList[currIndex]
+
+    // 第一段：06:00~12:00
+    if ("06:00" <= startTime && startTime <= "12:00") {
+        while (currIndex < timeList.length && timeList[currIndex] < "12:00") {
+            currIndex++
+        }
+        result += calculateMinutes(date, startTime, timeList[currIndex - 1])
+        if (currIndex < timeList.length) {
+            startTime = timeList[currIndex]
+        }
+    }
+    // 第二段：12:00~17:00
+    if ("12:00" <= startTime && startTime <= "17:00") {
+        while (currIndex < timeList.length && timeList[currIndex] < "17:00") {
+            currIndex++
+        }
+        result += calculateMinutes(date, startTime, timeList[currIndex - 1])
+        if (currIndex < timeList.length) {
+            startTime = timeList[currIndex]
+        }
+    }
+    // 第三段：17:00~23:00
+    if ("17:00" <= startTime && startTime <= "23:00") {
+        while (currIndex < timeList.length && timeList[currIndex] < "23:00") {
+            currIndex++
+        }
+        result += calculateMinutes(date, startTime, timeList[currIndex - 1])
+    }
+    result = (result / 60).toFixed(2)  // 单位为小时
+    return result
+}
+
+function calculateMinutes(dateStr, beginTime, endTime) {
+    let date = dateStr.replace(/\-/g, "/")
+    let begin = new Date(date + " " + beginTime)
+    let end = new Date(date + " " + endTime)
+    let result = parseInt(end - begin) / 1000 / 60
+    return result
 }
 
 function checkUpdate() {
