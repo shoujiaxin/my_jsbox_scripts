@@ -1,8 +1,9 @@
 // $app.validEnv = $env.app
-const currVersion = "0.3.0"  // 版本号
+const currVersion = "0.3.1"  // 版本号
 checkUpdate()
 var historyCnt = 0
 var historyData = new Array()
+var totalDuration = 0
 getHistory()
 
 $ui.render({
@@ -97,7 +98,8 @@ $ui.render({
             ]
         },
         layout: function (make, view) {
-            make.left.right.bottom.inset(10)
+            make.left.right.inset(10)
+            make.bottom.inset(30)
             make.top.equalTo($("historyLabel").bottom).offset(5)
         },
         events: {
@@ -108,6 +110,19 @@ $ui.render({
                     sender.endRefreshing()
                 })
             }
+        }
+    }, {
+        type: "label",
+        props: {
+            id: "totalDurationLabel",
+            text: `共 ${totalDuration.toFixed(2)} 小时`,
+            font: $font(16),
+            align: $align.center,
+            bgcolor: $color("tint")
+        },
+        layout: function (make, view) {
+            make.left.right.bottom.inset(0)
+            make.top.equalTo($("historyList").bottom)
         }
     }]
 })
@@ -149,7 +164,9 @@ function getHistory() {
             historyCnt++
         }
         result.close()
-        item.title += "（共 " + getResult(dateList[i], item.rows) + " 小时）"
+        let duration = getDuration(dateList[i], item.rows)
+        totalDuration += parseFloat(duration)
+        item.title += "（共 " + duration + " 小时）"
         historyData.push(item)
     }
     db.close()
@@ -157,11 +174,13 @@ function getHistory() {
 
 function updateHistory() {
     $ui.loading(true)
-    historyData = []
     historyCnt = 0
+    historyData = []
+    totalDuration = 0
     getHistory()
     $("historyList").data = historyData
     $("historyList").footer.text = `最近 ${historyCnt} 条记录`
+    $("totalDurationLabel").text = `共 ${totalDuration.toFixed(2)} 小时`
     $ui.loading(false)
 }
 
@@ -302,13 +321,13 @@ function deleteHistory(date, time) {
     })
 }
 
-function getResult(date, timeList) {
+function getDuration(date, timeList) {
     let result = 0
     let currIndex = 0
     let startTime = timeList[currIndex]
 
     // 第一段：06:00~12:00
-    if ("06:00" <= startTime && startTime <= "12:00") {
+    if ("06:00" <= startTime && startTime < "12:00") {
         while (currIndex < timeList.length && timeList[currIndex] < "12:00") {
             currIndex++
         }
@@ -318,7 +337,7 @@ function getResult(date, timeList) {
         }
     }
     // 第二段：12:00~17:00
-    if ("12:00" <= startTime && startTime <= "17:00") {
+    if ("12:00" <= startTime && startTime < "17:00") {
         while (currIndex < timeList.length && timeList[currIndex] < "17:00") {
             currIndex++
         }
@@ -339,7 +358,7 @@ function getResult(date, timeList) {
 }
 
 function calculateMinutes(dateStr, beginTime, endTime) {
-    let date = dateStr.replace(/\-/g, "/")
+    let date = dateStr.replace(/-/g, "/")
     let begin = new Date(date + " " + beginTime)
     let end = new Date(date + " " + endTime)
     let result = parseInt(end - begin) / 1000 / 60
