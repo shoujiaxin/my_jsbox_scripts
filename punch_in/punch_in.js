@@ -1,10 +1,10 @@
 // $app.validEnv = $env.app
-const currVersion = "0.3.1"  // 版本号
+const currVersion = "0.3.2"  // 版本号
 checkUpdate()
-var historyCnt = 0
-var historyData = new Array()
-var totalDuration = 0
-getHistory()
+var dayCnt = 0         // 总打卡天数
+var historyCnt = 0     // 总打卡记录数
+var totalDuration = 0  // 总打卡时长
+var daysPerPage = 10   // 每页加载 10 天的记录
 
 $ui.render({
     props: {
@@ -64,7 +64,7 @@ $ui.render({
         props: {
             id: "historyList",
             bgcolor: $color("clear"),
-            data: historyData,
+            data: getHistory(dayCnt, daysPerPage),
             showsVerticalIndicator: false,
             stickyHeader: true,
             footer: {
@@ -109,6 +109,13 @@ $ui.render({
                 $delay(0.5, function () {
                     sender.endRefreshing()
                 })
+            },
+            didReachBottom: function (sender) {
+                $ui.loading(true)
+                let newData = getHistory(dayCnt, daysPerPage)
+                sender.endFetchingMore()
+                sender.data = sender.data.concat(newData)
+                $ui.loading(false)
             }
         }
     }, {
@@ -134,11 +141,15 @@ function formatDateAndTime(value) {
     return value
 }
 
-function getHistory() {
+function getHistory(dayBegin, dayNum) {
+    let historyData = []
     let dateList = []
 
     let db = $sqlite.open("punch_history.db")
-    let object = db.query("SELECT DISTINCT date FROM History ORDER BY date DESC")
+    let object = db.query({
+        sql: "SELECT DISTINCT date FROM History ORDER BY date DESC LIMIT ?,?",
+        args: [dayBegin, dayNum]  // 前者为偏移量；后者为限制值，负数表示无限制
+    })
     if (object.error) {
         db.close()
         return
@@ -146,6 +157,7 @@ function getHistory() {
     let result = object.result
     while (result.next()) {
         dateList.push(result.get("date"))
+        dayCnt++
     }
     result.close()
 
@@ -170,15 +182,15 @@ function getHistory() {
         historyData.push(item)
     }
     db.close()
+    return historyData
 }
 
 function updateHistory() {
     $ui.loading(true)
+    dayCnt = 0
     historyCnt = 0
-    historyData = []
     totalDuration = 0
-    getHistory()
-    $("historyList").data = historyData
+    $("historyList").data = getHistory(dayCnt, daysPerPage)
     $("historyList").footer.text = `最近 ${historyCnt} 条记录`
     $("totalDurationLabel").text = `共 ${totalDuration.toFixed(2)} 小时`
     $ui.loading(false)
@@ -357,10 +369,10 @@ function getDuration(date, timeList) {
     return result
 }
 
-function calculateMinutes(dateStr, beginTime, endTime) {
+function calculateMinutes(dateStr, timeBegin, timeEnd) {
     let date = dateStr.replace(/-/g, "/")
-    let begin = new Date(date + " " + beginTime)
-    let end = new Date(date + " " + endTime)
+    let begin = new Date(date + " " + timeBegin)
+    let end = new Date(date + " " + timeEnd)
     let result = parseInt(end - begin) / 1000 / 60
     return result
 }
