@@ -1,5 +1,5 @@
 // $app.validEnv = $env.app
-const currVersion = "0.3.2"  // 版本号
+const currVersion = "0.3.3"  // 版本号
 checkUpdate()
 var dayCnt = 0         // 总打卡天数
 var historyCnt = 0     // 总打卡记录数
@@ -122,7 +122,7 @@ $ui.render({
         type: "label",
         props: {
             id: "totalDurationLabel",
-            text: `共 ${totalDuration.toFixed(2)} 小时`,
+            text: `共 ${dayCnt} 天，${totalDuration.toFixed(2)} 小时`,
             font: $font(16),
             align: $align.center,
             bgcolor: $color("tint")
@@ -178,7 +178,7 @@ function getHistory(dayBegin, dayNum) {
         result.close()
         let duration = getDuration(dateList[i], item.rows)
         totalDuration += parseFloat(duration)
-        item.title += "（共 " + duration + " 小时）"
+        item.title += `（共 ${duration} 小时）`
         historyData.push(item)
     }
     db.close()
@@ -192,7 +192,7 @@ function updateHistory() {
     totalDuration = 0
     $("historyList").data = getHistory(dayCnt, daysPerPage)
     $("historyList").footer.text = `最近 ${historyCnt} 条记录`
-    $("totalDurationLabel").text = `共 ${totalDuration.toFixed(2)} 小时`
+    $("totalDurationLabel").text = `共 ${dayCnt} 天，${totalDuration.toFixed(2)} 小时`
     $ui.loading(false)
 }
 
@@ -211,6 +211,7 @@ function editHistory(date, time) {
             layout: function (make, view) {
                 make.left.inset(10)
                 make.top.inset(40)
+                make.size.equalTo($size(70, 24))
             }
         }, {
             type: "input",
@@ -235,6 +236,7 @@ function editHistory(date, time) {
             layout: function (make, view) {
                 make.left.inset(10)
                 make.top.inset(100)
+                make.size.equalTo($size(70, 24))
             }
         }, {
             type: "input",
