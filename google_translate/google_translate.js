@@ -1,5 +1,5 @@
 $app.validEnv = $env.app
-const currVersion = "1.0.2"  // 版本号
+const currVersion = "1.0.3"  // 版本号
 checkUpdate()
 var tlList = {
     "阿拉伯语": "ar",
@@ -15,6 +15,10 @@ var tlList = {
 var slList = Object.assign({ "检测语言": "auto" }, tlList)
 var slNameList = Object.keys(slList)
 var tlNameList = Object.keys(tlList)
+let notchOffset = 0
+if ($device.hasFaceID) {
+    notchOffset = 18
+}
 
 $ui.render({
     props: {
@@ -36,7 +40,7 @@ $ui.render({
             },
             layout: function (make, view) {
                 make.left.top.right.inset(10)
-                make.height.equalTo(view.super).offset(-40).dividedBy(2)
+                make.height.equalTo(view.super).offset(-40 - notchOffset / 2).dividedBy(2)
                 addShadow(view)
             },
             events: {
@@ -133,7 +137,7 @@ $ui.render({
             layout: function (make, view) {
                 make.top.equalTo($("slView").bottom).offset(10)
                 make.left.right.inset(10)
-                make.height.equalTo(view.super).offset(-40).dividedBy(2)
+                make.height.equalTo(view.super).offset(-40 - notchOffset / 2).dividedBy(2)
                 addShadow(view)
             },
             views: [{
@@ -204,7 +208,7 @@ $ui.render({
             },
             layout: function (make, view) {
                 make.left.right.bottom.inset(0)
-                make.height.equalTo(50)
+                make.height.equalTo(50 + notchOffset)
             },
             views: [{
                 type: "button",
@@ -219,6 +223,7 @@ $ui.render({
                 },
                 events: {
                     tapped: function (sender) {
+                        $device.taptic(1);
                         if ($("slButton").title == "检测语言") {
                             $ui.error("请指定源语言")
                             return
@@ -242,7 +247,7 @@ $ui.render({
                 },
                 layout: function (make, view) {
                     make.left.inset(10)
-                    make.top.bottom.inset(0)
+                    make.centerY.equalTo($("switchButton"))
                     make.right.equalTo($("switchButton").left).offset(-10)
                 },
                 events: {
@@ -260,7 +265,7 @@ $ui.render({
                 },
                 layout: function (make, view) {
                     make.right.inset(10)
-                    make.top.bottom.inset(0)
+                    make.centerY.equalTo($("switchButton"))
                     make.left.equalTo($("switchButton").right).offset(10)
                 },
                 events: {
@@ -278,7 +283,10 @@ $ui.render({
                 bgcolor: $color("clear"),
                 hidden: true
             },
-            layout: $layout.fill,
+            layout: function (make, view) {
+                make.left.top.right.inset(0)
+                make.bottom.equalTo($("buttonView").top)
+            },
             events: {
                 tapped: function (sender) {
                     hidePicker()
@@ -292,10 +300,7 @@ $ui.render({
                     style: 3,
                     alpha: 0
                 },
-                layout: function (make, view) {
-                    make.left.top.right.inset(0)
-                    make.bottom.inset(50)
-                },
+                layout: $layout.fill,
                 events: {
                     tapped: function (sender) {
                         hidePicker()

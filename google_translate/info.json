@@ -1,5 +1,5 @@
 {
     "name": "google_translate.js",
-    "version": "1.0.2",
-    "msg": "更新日志：\n1. 增加翻译过程中的指示器"
+    "version": "1.0.3",
+    "msg": "更新日志：\n1. 修复 UI 问题"
 }
