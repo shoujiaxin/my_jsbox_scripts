@@ -1,7 +1,11 @@
 $app.validEnv = $env.app
-const currVersion = "1.1.3"  // 版本号
+const currVersion = "1.1.4"  // 版本号
 checkUpdate()
 let mainColor = "#508aeb"
+let notchOffset = 0
+if ($device.hasFaceID) {
+    notchOffset = 14
+}
 getLocation()
 
 function getLocation() {
@@ -34,12 +38,19 @@ function loadPage(lat, lng, cityId, cityName) {
         views: [{
             type: "view",
             props: {
+                id: "bgView",
+                bgcolor: $color("#EBEBF1")
+            },
+            layout: $layout.fill
+        }, {
+            type: "view",
+            props: {
                 id: "titleView",
                 bgcolor: $color(mainColor)
             },
             layout: function (make, view) {
                 make.left.top.right.inset(0)
-                make.height.equalTo(64)
+                make.height.equalTo(64 + notchOffset)
             },
             views: [{
                 type: "button",
@@ -50,11 +61,12 @@ function loadPage(lat, lng, cityId, cityName) {
                     bgcolor: $color("clear")
                 },
                 layout: function (make, view) {
-                    make.top.inset(25)
+                    make.bottom.equalTo($("titleView").bottom)
                     make.centerX.equalTo(view.super)
                 },
                 events: {
                     tapped: function (sender) {
+                        $device.taptic(0);
                         getLocation()
                     }
                 }
@@ -80,6 +92,7 @@ function loadPage(lat, lng, cityId, cityName) {
             props: {
                 id: "webView",
                 url: `http://web.chelaile.net.cn/ch5/index.html?showFav=1&switchCity=0&utm_source=webapp_meizu_map&showTopLogo=0&gpstype=wgs&src=webapp_meizu_map&utm_medium=menu&showHeader=1&hideFooter=1&cityName=${cityName}&cityId=${cityId}&supportSubway=1&cityVersion=0&lat=${lat}&lng=${lng}#!/linearound`,
+                scrollEnabled: false,
                 bounces: false,
                 transparent: true,
                 showsProgress: false,
@@ -87,7 +100,8 @@ function loadPage(lat, lng, cityId, cityName) {
             },
             layout: function (make, view) {
                 make.top.equalTo($("titleView").bottom)
-                make.left.right.bottom.inset(0)
+                make.left.right.inset(0)
+                make.bottom.inset(notchOffset)
             }
         }]
     })
